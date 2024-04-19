@@ -7,6 +7,7 @@
 #include "Logging/LogMacros.h"
 #include "CSGJ2024Character.generated.h"
 
+class UPlayerInventoryComponent;
 class USphereComponent;
 class USpringArmComponent;
 class UCameraComponent;
@@ -35,6 +36,9 @@ class ACSGJ2024Character : public ACharacter
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Interact, meta = (AllowPrivateAccess = "true"))
 	USphereComponent* InteractCollider;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	UPlayerInventoryComponent* InventoryComponent;
 	
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
