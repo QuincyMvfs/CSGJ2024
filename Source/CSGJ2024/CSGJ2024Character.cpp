@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "IInteractable.h"
 #include "InputActionValue.h"
+#include "ActorComponents/PlayerInventoryComponent.h"
 #include "Components/SphereComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -56,6 +57,7 @@ ACSGJ2024Character::ACSGJ2024Character()
 	InteractCollider = CreateDefaultSubobject<USphereComponent>(TEXT("InteractCollider"));
 	InteractCollider->SetupAttachment(RootComponent);
 
+	InventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("InventoryComponent"));
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)

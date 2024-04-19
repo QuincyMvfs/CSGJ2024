@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "FInteractableInfo.generated.h"e
+#include "FInteractableInfo.generated.h"
 
 enum class EInteractableTypes : uint8;
 
