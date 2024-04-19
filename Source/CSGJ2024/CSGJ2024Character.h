@@ -7,6 +7,7 @@
 #include "Logging/LogMacros.h"
 #include "CSGJ2024Character.generated.h"
 
+class UPlayerInteractionComponent;
 class UPlayerInventoryComponent;
 class USphereComponent;
 class USpringArmComponent;
@@ -20,6 +21,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractFailed);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractedSuccessfully, AActor*, InteractableActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUnInteractedSuccessfully, AActor*, InteractableActor);
 
 UCLASS(config=Game)
 class ACSGJ2024Character : public ACharacter
@@ -39,6 +41,9 @@ class ACSGJ2024Character : public ACharacter
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
 	UPlayerInventoryComponent* InventoryComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	UPlayerInteractionComponent* InteractionComponent;
 	
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -75,6 +80,9 @@ protected:
 
 	UPROPERTY(BlueprintAssignable)
 	FInteractFailed InteractFailedEvent;
+
+	UPROPERTY(BlueprintAssignable)
+	FUnInteractedSuccessfully UnInteractedEvent;
 	
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -89,6 +97,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void TryInteract(const FInputActionValue& Value);
+	virtual void TryUnInteract(const FInputActionValue& Value);
 
 public:
 	bool IsPaused = false;

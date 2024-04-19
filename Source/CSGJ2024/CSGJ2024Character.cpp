@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "IInteractable.h"
 #include "InputActionValue.h"
+#include "ActorComponents/PlayerInteractionComponent.h"
 #include "ActorComponents/PlayerInventoryComponent.h"
 #include "Components/SphereComponent.h"
 
@@ -58,6 +59,10 @@ ACSGJ2024Character::ACSGJ2024Character()
 	InteractCollider->SetupAttachment(RootComponent);
 
 	InventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("InventoryComponent"));
+	
+	InteractionComponent = CreateDefaultSubobject<UPlayerInteractionComponent>(TEXT("InteractionComponent"));
+	InteractionComponent->PlayerMovementComp = GetCharacterMovement();
+	InteractionComponent->PlayerInventoryComp = InventoryComponent;
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
@@ -98,6 +103,7 @@ void ACSGJ2024Character::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// Interact
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ACSGJ2024Character::TryInteract);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ACSGJ2024Character::TryUnInteract);
 	}
 	else
 	{
@@ -177,5 +183,24 @@ void ACSGJ2024Character::TryInteract(const FInputActionValue& Value)
 	{
 		InteractFailedEvent.Broadcast();
 		UE_LOG(LogTemp, Warning, TEXT("%d"), OverlappingActors.Num());
+	}
+}
+
+void ACSGJ2024Character::TryUnInteract(const FInputActionValue& Value)
+{
+	TArray<AActor*> OverlappingActors; 
+	InteractCollider->GetOverlappingActors(OverlappingActors);
+	OverlappingActors.Remove(this);
+
+	if (OverlappingActors.Num() > 0)
+	{
+		for (AActor* OverlappingActor : OverlappingActors)
+		{
+			if (OverlappingActor->GetClass()->ImplementsInterface(UIInteractable::StaticClass()))
+			{
+				UnInteractedEvent.Broadcast(OverlappingActor);
+				break;
+			}
+		}
 	}
 }

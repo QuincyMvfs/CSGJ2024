@@ -23,3 +23,13 @@ enum class EInteractableTypes : uint8
 	Flower,
 	Gem
 };
+
+UENUM(BlueprintType)
+enum class EAnimationStates : uint8
+{
+	Idle,
+	Walking,
+	SlowedWalking,
+	Punching,
+	Grabbing
+};
