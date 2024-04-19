@@ -21,22 +21,27 @@ void UPlayerInteractionComponent::BeginPlay()
 	m_startMovementSpeed = PlayerMovementComp->MaxWalkSpeed;
 }
 
-void UPlayerInteractionComponent::CheckInteractable(FInteractableInfo ResourceInfo)
+void UPlayerInteractionComponent::CheckInteractable(FInteractableInfo ResourceInfo, AActor* InteractableActor)
 {
 	CurrentInteractableInfo = ResourceInfo;
+	m_interactableActor = InteractableActor;
 	
 	switch (ResourceInfo.InteractableType)
 	{
 		case EInteractableTypes::Stone:
-			StartPunching(4);
+			StartPunching(StonePunchingDuration);
 			break;
 		case EInteractableTypes::Wood:
+			StartPunching(WoodPunchingDuration);
 			break;
 		case EInteractableTypes::Flower:
+			GatherResource(GatherFlowersDuration);
 			break;
 		case EInteractableTypes::Mushroom:
+			GatherResource(GatherMushroomsDuration);
 			break;
 		case EInteractableTypes::Gem:
+			PickupLargeObject(0.5f);
 			break;
 		default:
 			break;
@@ -45,6 +50,8 @@ void UPlayerInteractionComponent::CheckInteractable(FInteractableInfo ResourceIn
 
 void UPlayerInteractionComponent::StartPunching(float Duration)
 {
+	UE_LOG(LogTemp, Warning, TEXT("PUNCH"));
+
 	CurrentAnimationState = EAnimationStates::Punching;
 	GetWorld()->GetTimerManager().SetTimer(
 		InteractionTimerHandle, this, &UPlayerInteractionComponent::FinishInteraction, Duration, false);
@@ -52,17 +59,39 @@ void UPlayerInteractionComponent::StartPunching(float Duration)
 
 void UPlayerInteractionComponent::GatherResource(float Duration)
 {
+	UE_LOG(LogTemp, Warning, TEXT("GATHER"));
+	
+	CurrentAnimationState = EAnimationStates::Grabbing;
+	GetWorld()->GetTimerManager().SetTimer(
+		InteractionTimerHandle, this, &UPlayerInteractionComponent::FinishInteraction, Duration, false);
 }
 
-void UPlayerInteractionComponent::PickupLargeObject()
+void UPlayerInteractionComponent::PickupLargeObject(float Duration)
 {
+	UE_LOG(LogTemp, Warning, TEXT("PICKUP LARGE OBJECT"));
+	
+	CurrentAnimationState = EAnimationStates::SlowedWalking;
+	PlayerMovementComp->MaxWalkSpeed = LargeObjectMovementSpeed;
+
+}
+
+void UPlayerInteractionComponent::CancelInteraction()
+{
+	UE_LOG(LogTemp, Warning, TEXT("CANCEL"));
+
+	GetWorld()->GetTimerManager().ClearTimer(InteractionTimerHandle);
+	CurrentAnimationState = EAnimationStates::Idle;
+	PlayerMovementComp->MaxWalkSpeed = m_startMovementSpeed;
 }
 
 void UPlayerInteractionComponent::FinishInteraction()
 {
+	UE_LOG(LogTemp, Warning, TEXT("DO SOMETHING"));
+	
 	PlayerInventoryComp->IncreaseResource(
 		CurrentInteractableInfo.InteractableType, CurrentInteractableInfo.TotalResources);
-	CurrentAnimationState = EAnimationStates::Idle;
-	PlayerMovementComp->MaxWalkSpeed = m_startMovementSpeed;
+	m_interactableActor->Destroy();
+	
+	CancelInteraction();
 }
 

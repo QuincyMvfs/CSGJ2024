@@ -102,7 +102,7 @@ void ACSGJ2024Character::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACSGJ2024Character::Look);
 
 		// Interact
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ACSGJ2024Character::TryInteract);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ACSGJ2024Character::TryInteract);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ACSGJ2024Character::TryUnInteract);
 	}
 	else

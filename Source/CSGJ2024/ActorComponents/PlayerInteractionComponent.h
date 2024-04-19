@@ -30,7 +30,7 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void CheckInteractable(FInteractableInfo ResourceInfo);
+	void CheckInteractable(FInteractableInfo ResourceInfo, AActor* InteractableActor);
 
 	UFUNCTION(BlueprintCallable)
 	void StartPunching(float Duration);
@@ -39,7 +39,7 @@ public:
 	void GatherResource(float Duration);
 
 	UFUNCTION(BlueprintCallable)
-	void PickupLargeObject();
+	void PickupLargeObject(float Duration);
 
 public:
 	UPlayerInventoryComponent* PlayerInventoryComponent;
@@ -67,9 +67,13 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UPlayerInventoryComponent* PlayerInventoryComp;
+
+	UFUNCTION(BlueprintCallable)
+	void CancelInteraction();
 	
 private:
 	void FinishInteraction();
+	AActor* m_interactableActor;
 	float m_startMovementSpeed;
 	FTimerHandle InteractionTimerHandle;
 	FInteractableInfo CurrentInteractableInfo;
