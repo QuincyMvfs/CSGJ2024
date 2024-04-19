@@ -9,6 +9,7 @@
 #include "GameFramework/Controller.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "IInteractable.h"
 #include "InputActionValue.h"
 #include "Components/SphereComponent.h"
 
@@ -152,9 +153,23 @@ void ACSGJ2024Character::TryInteract(const FInputActionValue& Value)
 
 	if (OverlappingActors.Num() > 0)
 	{
-		InteractedEvent.Broadcast();
-		UE_LOG(LogTemp, Warning, TEXT("%d"), OverlappingActors.Num());
-
+		int ArrayIndex = 0;		
+		
+		for (AActor* OverlappingActor : OverlappingActors)
+		{
+			if (OverlappingActor->GetClass()->ImplementsInterface(UIInteractable::StaticClass()))
+			{
+				InteractedEvent.Broadcast(OverlappingActor);
+				ArrayIndex = 1;
+				break;
+			}
+		}
+		
+		if (ArrayIndex == 0)
+		{
+			InteractFailedEvent.Broadcast();
+			UE_LOG(LogTemp, Warning, TEXT("%d"), OverlappingActors.Num());
+		}
 	}
 	else
 	{

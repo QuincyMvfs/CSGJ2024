@@ -12,12 +12,13 @@ class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
+class UIInteractable;
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractedSuccessfully);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractFailed);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractedSuccessfully, AActor*, InteractableActor);
 
 UCLASS(config=Game)
 class ACSGJ2024Character : public ACharacter
