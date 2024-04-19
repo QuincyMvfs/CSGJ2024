@@ -9,7 +9,10 @@
 #include "GameFramework/Controller.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "IInteractable.h"
 #include "InputActionValue.h"
+#include "ActorComponents/PlayerInventoryComponent.h"
+#include "Components/SphereComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -50,6 +53,12 @@ ACSGJ2024Character::ACSGJ2024Character()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	// Interact Collider
+	InteractCollider = CreateDefaultSubobject<USphereComponent>(TEXT("InteractCollider"));
+	InteractCollider->SetupAttachment(RootComponent);
+
+	InventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("InventoryComponent"));
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
@@ -86,6 +95,9 @@ void ACSGJ2024Character::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACSGJ2024Character::Look);
+
+		// Interact
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ACSGJ2024Character::TryInteract);
 	}
 	else
 	{
@@ -95,6 +107,8 @@ void ACSGJ2024Character::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 void ACSGJ2024Character::Move(const FInputActionValue& Value)
 {
+	if (IsPaused) return;
+
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -118,6 +132,8 @@ void ACSGJ2024Character::Move(const FInputActionValue& Value)
 
 void ACSGJ2024Character::Look(const FInputActionValue& Value)
 {
+	if (IsPaused) return;
+
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
@@ -126,5 +142,40 @@ void ACSGJ2024Character::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void ACSGJ2024Character::TryInteract(const FInputActionValue& Value)
+{
+	if (IsPaused) return;
+
+	TArray<AActor*> OverlappingActors; 
+	InteractCollider->GetOverlappingActors(OverlappingActors);
+	OverlappingActors.Remove(this);
+
+	if (OverlappingActors.Num() > 0)
+	{
+		int ArrayIndex = 0;		
+		
+		for (AActor* OverlappingActor : OverlappingActors)
+		{
+			if (OverlappingActor->GetClass()->ImplementsInterface(UIInteractable::StaticClass()))
+			{
+				InteractedEvent.Broadcast(OverlappingActor);
+				ArrayIndex = 1;
+				break;
+			}
+		}
+		
+		if (ArrayIndex == 0)
+		{
+			InteractFailedEvent.Broadcast();
+			UE_LOG(LogTemp, Warning, TEXT("%d"), OverlappingActors.Num());
+		}
+	}
+	else
+	{
+		InteractFailedEvent.Broadcast();
+		UE_LOG(LogTemp, Warning, TEXT("%d"), OverlappingActors.Num());
 	}
 }
