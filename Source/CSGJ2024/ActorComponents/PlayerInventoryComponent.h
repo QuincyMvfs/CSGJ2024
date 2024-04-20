@@ -64,10 +64,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void DecreaseResource(EInteractableTypes ResourceType, int Amount);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int GetCurrentResourceAmount(EInteractableTypes ResourceType);
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int GetMaxResourceAmount(EInteractableTypes ResourceType);
 	
 };
