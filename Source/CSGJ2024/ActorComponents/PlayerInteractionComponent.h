@@ -15,6 +15,9 @@ class UPlayerInventoryComponent;
 enum class EAnimationStates : uint8;
 enum class EInteractableTypes : uint8;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionStarted, FInteractableInfo, ResourceInfo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionComplete, AActor*, InteractableActor);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CSGJ2024_API UPlayerInteractionComponent : public UActorComponent
 {
@@ -39,9 +42,18 @@ public:
 	void GatherResource(float Duration);
 
 	UFUNCTION(BlueprintCallable)
-	void PickupLargeObject(float Duration);
+	void TryPickupLargeObject(float Duration);
+	
+	UFUNCTION(BlueprintCallable)
+	void PickupLargeObject();
 
 public:
+	UPROPERTY(BlueprintAssignable)
+	FInteractionComplete InteractionCompleteEvent;
+
+	UPROPERTY(BlueprintAssignable)
+	FInteractionStarted InteractionStartedEvent;
+	
 	UPlayerInventoryComponent* PlayerInventoryComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Interaction Component")
@@ -55,6 +67,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Interaction Component")
 	float GatherMushroomsDuration = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Interaction Component")
+	float GatherGemDuration = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Interaction Component")
 	float LargeObjectMovementSpeed = 200.0f;

@@ -74,7 +74,6 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 protected:
-
 	UPROPERTY(BlueprintAssignable)
 	FInteractedSuccessfully InteractedEvent;
 

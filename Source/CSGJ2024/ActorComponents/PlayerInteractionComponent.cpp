@@ -8,23 +8,20 @@
 #include "CSGJ2024/FInteractableInfo.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-// Sets default values for this component's properties
-UPlayerInteractionComponent::UPlayerInteractionComponent()
-{
+UPlayerInteractionComponent::UPlayerInteractionComponent() { }
 
-}
-
-// Called when the game starts
 void UPlayerInteractionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	m_startMovementSpeed = PlayerMovementComp->MaxWalkSpeed;
 }
 
+// Gets the correlated task to perform
 void UPlayerInteractionComponent::CheckInteractable(FInteractableInfo ResourceInfo, AActor* InteractableActor)
 {
 	CurrentInteractableInfo = ResourceInfo;
 	m_interactableActor = InteractableActor;
+	InteractionStartedEvent.Broadcast(ResourceInfo);
 	
 	switch (ResourceInfo.InteractableType)
 	{
@@ -41,13 +38,14 @@ void UPlayerInteractionComponent::CheckInteractable(FInteractableInfo ResourceIn
 			GatherResource(GatherMushroomsDuration);
 			break;
 		case EInteractableTypes::Gem:
-			PickupLargeObject(0.5f);
+			TryPickupLargeObject(GatherGemDuration);
 			break;
 		default:
 			break;
 	}
 }
 
+// PUNCHING
 void UPlayerInteractionComponent::StartPunching(float Duration)
 {
 	UE_LOG(LogTemp, Warning, TEXT("PUNCH"));
@@ -57,6 +55,7 @@ void UPlayerInteractionComponent::StartPunching(float Duration)
 		InteractionTimerHandle, this, &UPlayerInteractionComponent::FinishInteraction, Duration, false);
 }
 
+// GATHERING
 void UPlayerInteractionComponent::GatherResource(float Duration)
 {
 	UE_LOG(LogTemp, Warning, TEXT("GATHER"));
@@ -66,15 +65,30 @@ void UPlayerInteractionComponent::GatherResource(float Duration)
 		InteractionTimerHandle, this, &UPlayerInteractionComponent::FinishInteraction, Duration, false);
 }
 
-void UPlayerInteractionComponent::PickupLargeObject(float Duration)
+//* GEM
+void UPlayerInteractionComponent::TryPickupLargeObject(float Duration)
+{
+	UE_LOG(LogTemp, Warning, TEXT("TRY PICKUP LARGE OBJECT"));
+	
+	CurrentAnimationState = EAnimationStates::Grabbing;
+	GetWorld()->GetTimerManager().SetTimer(
+		InteractionTimerHandle, this, &UPlayerInteractionComponent::PickupLargeObject, Duration, false);
+}
+
+void UPlayerInteractionComponent::PickupLargeObject()
 {
 	UE_LOG(LogTemp, Warning, TEXT("PICKUP LARGE OBJECT"));
 	
 	CurrentAnimationState = EAnimationStates::SlowedWalking;
 	PlayerMovementComp->MaxWalkSpeed = LargeObjectMovementSpeed;
+	PlayerInventoryComp->IncreaseResource(
+		CurrentInteractableInfo.InteractableType, CurrentInteractableInfo.TotalResources);
 
+	InteractionCompleteEvent.Broadcast(m_interactableActor);
 }
+//*
 
+//* STOPPING FUNCTIONS
 void UPlayerInteractionComponent::CancelInteraction()
 {
 	UE_LOG(LogTemp, Warning, TEXT("CANCEL"));
@@ -90,8 +104,9 @@ void UPlayerInteractionComponent::FinishInteraction()
 	
 	PlayerInventoryComp->IncreaseResource(
 		CurrentInteractableInfo.InteractableType, CurrentInteractableInfo.TotalResources);
-	m_interactableActor->Destroy();
+	InteractionCompleteEvent.Broadcast(m_interactableActor);
 	
 	CancelInteraction();
 }
+//*
 

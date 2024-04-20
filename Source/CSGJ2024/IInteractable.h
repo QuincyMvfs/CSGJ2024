@@ -30,4 +30,10 @@ public:
 
 	UFUNCTION()
 	virtual void UnInteract_Implementation() = 0;
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable")
+	void InteractionComplete();
+
+	UFUNCTION()
+	virtual void InteractionComplete_Implementation() = 0;
 };
